@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Encapsulates the functionality of getting an OSG certificate
+#
+# @author Tim Rupp <caphrim007@gmail.com>
+# @author Frank Nagy <nagy@fnal.gov>
+#
+
+HOSTCERT=${1:-`hostname --fqdn`}
+NODECERT=`echo $HOSTCERT | cut -d. -f 1`
+DOMAIN=`hostname --fqdn | cut -d. -f 2-`
+if [ "$HOSTCERT" == "$NODECERT" ]; then
+    HOSTCERT="$NODECERT.$DOMAIN"
+fi
+echo "Certificate request for $HOSTCERT will be generated."
+echo
+
+if [ -d "new.cert" ]; then
+    rm -rf new.cert
+fi
+
+mkdir new.cert
+chmod u=rwx new.cert
+chmod o-r new.cert
+cd new.cert
+
+# Get the OpenSSL config file needed to generate a proper cert
+wget http://security.fnal.gov/pki/osgpki-host-ssl.conf
+
+# Get the line number that you need to insert the commonName
+# default value after
+#
+# For example, line 81
+LINE_NUMBER=`grep -nr "Name (e.g., foo.bar.com)" osgpki-host-ssl.conf | awk -F: '{print $1}'`
+
+# This little bit of magic inserts your hostname into the
+# default value for commonName_default. This makes it so
+# that the cert is created with a subject that has your
+# hostname correctly inserted into it without having to
+# ask you questions.
+sed "${LINE_NUMBER}a\commonName_default\t\t= $HOSTNAME" osgpki-host-ssl.conf > osgpki-host-ssl.conf.new
+
+openssl req -new -batch -keyout $HOSTNAME.key -nodes -out $HOSTNAME.req -config osgpki-host-ssl.conf.new
+SUBJECT=`openssl req -text -in $HOSTNAME.req | grep "Subject: "`
+REQUEST=`openssl req -text -in $HOSTNAME.req | sed -ne '/^-----BEGIN CERTIFICATE REQUEST-----/,/^-----END CERTIFICATE REQUEST-----/p'`
+
+echo
+echo
+echo
+echo
+echo
+echo "Here is your certificate request."
+echo "Does the Subject include your full hostname?"
+echo
+echo
+echo $SUBJECT
+echo
+echo "$REQUEST"
+echo
