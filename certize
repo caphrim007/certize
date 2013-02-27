@@ -32,6 +32,11 @@ wget http://security.fnal.gov/pki/osgpki-host-ssl.conf
 wget http://home.fnal.gov/~tarupp/downloads/certize/certize.hashes.zip
 unzip certize.hashes.zip
 
+# Download the CA file that contains the Certificate Authority trust chains
+# for all the CA's that you want to trust certs from (DOEGrids, OSG, KCA,
+# KCA HSM, etc)
+wget http://home.fnal.gov/~tarupp/downloads/certize/ca.pem
+
 # Get the line number that you need to insert the commonName
 # default value after
 #
