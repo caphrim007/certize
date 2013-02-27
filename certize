@@ -27,6 +27,11 @@ cd new.cert
 # Get the OpenSSL config file needed to generate a proper cert
 wget http://security.fnal.gov/pki/osgpki-host-ssl.conf
 
+# Download the cert hashes files of the authorities that you want to be able
+# to accept certificates from.
+wget http://home.fnal.gov/~tarupp/downloads/certize/certize.hashes.zip
+unzip certize.hashes.zip
+
 # Get the line number that you need to insert the commonName
 # default value after
 #
